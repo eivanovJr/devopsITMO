@@ -1,0 +1,14 @@
+server {
+        listen {{ nginx_server_port }};
+        server_name {{ nginx_server_name }};
+	access_log {{ nginx_access_log_path }};
+	error_log {{ nginx_error_log_path }};
+	root {{ nginx_root_default }};
+
+        location / {
+		proxy_pass {{ nginx_proxy_pass }};
+        }
+
+        location /{{ nginx_static_files_url }} {
+        }
+}

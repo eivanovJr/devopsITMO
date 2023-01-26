@@ -1,0 +1,20 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: false
+  become: true
+  tasks:
+    - name: "Deleting openvpn"
+      apt: 
+        name: openvpn
+        state: absent
+    - name: "Deleting directories"
+      file:
+        path: "{{ item }}"
+        state: absent
+      loop:
+        - easy_rsa_dir
+        - client_configs_dir
+    - name: "Include eivnv.openvpn"
+      ansible.builtin.include_role:
+        name: "eivnv.openvpn"

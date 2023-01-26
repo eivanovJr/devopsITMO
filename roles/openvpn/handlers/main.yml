@@ -1,0 +1,7 @@
+---
+- name: enable openvpn
+  become: yes
+  service: 
+    name: openvpn
+    enabled: yes
+    state: started

@@ -1,0 +1,9 @@
+---
+# vars file for openvpn
+easy_rsa_dir: "/usr/share/easy-rsa"
+openvpn_dir: "/etc/openvpn"
+
+# network
+openvpn_port: "1194"
+openvpn_protocol: "udp"
+

@@ -1,0 +1,4 @@
+---
+docker_apt_gpg_key_url: "https://download.docker.com/linux/ubuntu/gpg"
+docker_apt_repository_url: "deb https://download.docker.com/linux/ubuntu focal stable"
+docker_apt_version: "latest"

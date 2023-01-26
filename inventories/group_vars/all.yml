@@ -1,0 +1,3 @@
+---
+project_path: "/Users/ev-ivanoff/devopsITMO"
+inventories: "{{ project_path }}/inventories"

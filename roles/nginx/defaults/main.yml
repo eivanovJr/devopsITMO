@@ -1,0 +1,12 @@
+---
+nginx_user: "www-data"
+nginx_worker_processes: "auto"
+nginx_worker_connections: 768
+client_max_body_size: "1M"
+nginx_server_port: 80
+nginx_server_name: "localhost"
+nginx_root_default: "/home/vagrant/DevOps/lab-2"
+nginx_proxy_pass: "http://localhost:8080"
+nginx_static_files_url: "static/html"
+nginx_error_log_path: "/var/log/nginx/access.log"
+nginx_access_log_path: "/var/log/nginx/error.log"

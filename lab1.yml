@@ -1,0 +1,103 @@
+---
+- hosts: all
+  become: true
+  gather_facts: no
+  tasks:
+    - name: Install aptitude
+      apt:
+        name: aptitude
+        state: latest
+        update_cache: true
+
+    - name: Install required system packages
+      apt:
+        pkg:
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - software-properties-common
+          - python3-pip
+          - virtualenv
+          - python3-setuptools
+        state: latest
+        update_cache: true
+
+    - name: Add Docker GPG apt Key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Add Docker Repository
+      apt_repository:
+        repo: deb https://download.docker.com/linux/ubuntu focal stable
+        state: present
+
+    - name: Update apt and install docker-ce
+      apt:
+        name: docker-ce
+        state: latest
+        update_cache: true
+
+    - name: Install Docker Module for Python
+      pip:
+        name: docker
+
+- hosts: app
+  become: yes
+  become_method: sudo
+  tasks:
+    - name: Delete app directory
+      file:
+        path: "{{ app_path }}"
+        state: absent
+
+    - name: Cloning repository
+      git:
+        repo: https://github.com/mdn/django-locallibrary-tutorial.git
+        dest: "{{ app_path }}"
+        clone: yes
+        update: yes
+
+    - name: Change settings file
+      copy:
+        src: "{{ inventories }}/files/settings.py"
+        dest: "{{ app_path}}/locallibrary/"
+
+    - name: Installing requirements from requirements.txt
+      ansible.builtin.pip:
+        requirements: "{{ app_path }}/requirements.txt"
+        extra_args: "--upgrade"
+
+    - name: Make migrations
+      command: "python3 {{ app_path }}/manage.py makemigrations"
+
+    - name: Migrate
+      command: "python3 {{ app_path }}/manage.py migrate"
+
+    - name: Collect static
+      command: "python3 {{ app_path }}/manage.py collectstatic --noinput"
+
+    - name: Run the standard tests
+      command: "python3 {{ app_path }}/manage.py test"
+
+    - name: Copy Dockerfile
+      copy: 
+        src: "{{ inventories }}/files/Dockerfile"
+        dest: "{{ app_path }}"
+        remote_src: no
+
+    - name: Stop instance
+      shell: "sudo docker rm -f {{ docker_container_name }}"
+      ignore_errors: yes
+
+
+    - name: Configuration docker image
+      docker_image:
+        build:
+          path: "{{ app_path }}"
+        name: "{{ docker_image_name }}"
+        state: present
+        source: build
+
+    - name: Start docker container
+      shell: "sudo docker run -d -p {{ docker_container_working_port }}:80 --name {{ docker_container_name }} {{ docker_image_name }}:latest"

@@ -1,0 +1,25 @@
+---
+# tasks file for ovpn
+
+
+
+- include_tasks: create_certs_server.yaml
+
+- include_tasks: create_ovpn_server.yaml
+
+- include_tasks: create_sign_for_certs_server.yaml
+
+- include_tasks: copy_certs_to_ovpn_server.yaml
+
+- include_tasks: register_ovpn_clients.yaml
+
+- include_tasks: create_sign_for_client_certs.yaml
+
+- include_tasks: copy_certs_to_ovpn_client.yaml
+
+- include_tasks: config_ovpn_server.yaml
+
+- include_tasks: create_ovpn_infra.yaml
+
+- include_tasks: create_ovpn_client.yaml
+

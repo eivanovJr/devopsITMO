@@ -1,0 +1,79 @@
+---
+- hosts: web
+  gather_facts: no
+  become: yes
+  roles:
+    - nginx
+  tasks:
+    - name: Create directory for static files for nginx server if it does not exists
+      file:
+        path: "{{ nginx_root_default }}/{{ nginx_static_files_url }}"
+        state: directory
+
+    - name: Copy static html document
+      copy:
+        src: "{{ inventories }}/files/index.html"
+        dest: "{{ nginx_root_default }}/{{ nginx_static_files_url }}"
+
+- hosts: app
+  gather_facts: no
+  become: yes
+  roles:
+    - docker
+
+  tasks:
+    - name: Delete app directory
+      file:
+        path: "{{ app_path }}"
+        state: absent
+
+    - name: Cloning repository
+      git:
+        repo: https://github.com/mdn/django-locallibrary-tutorial.git
+        dest: "{{ app_path }}"
+        clone: yes
+        update: yes
+
+    - name: Change settings file
+      copy:
+        src: "{{ inventories }}/files/settings.py"
+        dest: "{{ app_path}}/locallibrary/"
+
+    - name: Installing requirements from requirements.txt
+      pip: 
+        requirements: "{{ app_path }}/requirements.txt"
+        virtualenv: "{{ app_path }}/venv"
+
+    - name: Make migrations
+      command: "python3 {{ app_path }}/manage.py makemigrations"
+
+    - name: Migrate
+      command: "python3 {{ app_path }}/manage.py migrate"
+
+    - name: Collect static
+      command: "python3 {{ app_path }}/manage.py collectstatic --noinput"
+
+    - name: Run the standard tests
+      command: "python3 {{ app_path }}/manage.py test"
+
+    - name: Copy Dockerfile
+      copy: 
+        src: "{{ inventories }}/files/Dockerfile"
+        dest: "{{ app_path }}"
+        remote_src: no
+
+    - name: Stop instance
+      shell: "sudo docker rm -f {{ docker_container_name }}"
+      ignore_errors: yes
+
+
+    - name: Configuration docker image
+      docker_image:
+        build:
+          path: "{{ app_path }}"
+        name: "{{ docker_image_name }}"
+        state: present
+        source: build
+
+    - name: Start docker container
+      shell: "sudo docker run -d -p {{ docker_container_working_port }}:80 --name {{ docker_container_name }} {{ docker_image_name }}:latest"
