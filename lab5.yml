@@ -1,6 +1,19 @@
 ---
-- hosts: web
+- name: configure postgres master node
+  become: true
+  become_user: root
   gather_facts: no
-  become: yes
+  hosts: app
   roles:
-    - ansible-role-postgresql-master
+    - role: postgresql
+      vars:
+        postgresql_role: master
+
+- name: configure postgres replica node
+  become: true
+  become_user: root
+  hosts: web
+  roles:
+    - role: postgresql
+      vars:
+        postgresql_role: replica

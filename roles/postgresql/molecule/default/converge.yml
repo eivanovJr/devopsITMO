@@ -1,0 +1,9 @@
+---
+- name: Converge
+  hosts: all
+  gather_facts: false
+  become: yes
+  tasks:
+    - name: "Include b4ka.postgresql"
+      ansible.builtin.include_role:
+        name: "b4ka.postgresql"
